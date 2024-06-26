@@ -21,7 +21,7 @@ function preload() {
 }
 
 function setup(){
-    createCanvas(700, 700);
+    createCanvas(1200, 1200);
     colorMode(HSB);
     background(0,0,0);
     noStroke();
@@ -49,28 +49,63 @@ function setup(){
     areas.india = (INDiMaxPop / totalPopulation) * totalArea;
     // console.log(areas);
     // console.log(totalArea);
-    
-   
-  
+    ellipseMode("center");
 }
 
 function draw(){
+    
     background(0, 0, 0);
-    fill(colors.usa, 100,100);
-    let index = frameCount % data.usa.length;
-    console.log(index);
-    let element = data.usa[index]
-    let proportion = element / USAMaxPop;
-    let size = sqrt(proportion * areas.usa)
-    rect(index, index, size, size)
+    // Perlin noise variables
+    let noiseScale = 0.01;
+    let noiseOffset = 0;
 
-    fill(colors.china, 100,100);
-    let index2 = frameCount % data.china.length;
-    console.log(index2);
-    let element2 = data.china[index2]
-    let proportion2= element2 / CHIMaxPop;
-    let size2 = sqrt(proportion2 * areas.china)
-    rect(index2, index2, size2, size2)
+     // Country-specific variables
+     let country = 'usa';
+     let index = frameCount % data[country].length;
+     let maxPop = data[country][data[country].length - 1];
+     let area = areas[country];
+     let proportion = data[country][index] / maxPop;
+     let size = sqrt(proportion * area);
+     
+    // Generate a random shape using Perlin noise
+
+     let points = [];
+     for (let i = 0; i < 100; i++) {
+         let angle = i * TWO_PI / 100;
+         let radius = size * noise(noiseOffset + i * noiseScale);
+         let x = width / 2 + radius * cos(angle);
+         let y = height / 2 + radius * sin(angle);
+         points.push(createVector(x, y));
+         noiseOffset += 0.01;
+     }
+   
+     
+    // Draw the shape
+    fill(colors[country], 100, 100);
+    beginShape();
+    for (let p of points) {
+        vertex(p.x, p.y);
+    }
+    vertex(points[0].x, points[0].y);
+    endShape(CLOSE);
+    // fill(colors.usa, 100,100);
+    // for(i=0; i<random(10) ; i++){
+        
+    // }
+    // let index = frameCount % data.usa.length;
+    // console.log(index);
+    // let element = data.usa[index]
+    // let proportion = element / USAMaxPop;
+    // let size = sqrt(proportion * areas.usa)
+    // ellipse(index+width/2, index+width/2, size, size)
+
+    // fill(colors.china, 100,100,0.5);
+    // let index2 = frameCount % data.china.length;
+    // console.log(index2);
+    // let element2 = data.china[index2]
+    // let proportion2= element2 / CHIMaxPop;
+    // let size2 = sqrt(proportion2 * areas.china)
+    // rect(index2, index2, size2, size2)
 
 }
 
