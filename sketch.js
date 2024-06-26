@@ -3,8 +3,16 @@ let USrowData;
 let CHIrowData;
 let INrowData;
 let totalPopulation;
-let colors;
+let colors = {
+    china: 255,
+    india: 150,
+    usa: 50
+};
 let areas = {};
+let data={};
+let USAMaxPop;
+let CHIMaxPop;
+let INDiMaxPop;
 
 function preload() {
     USrowData = loadJSON( "/Us_pop.txt");
@@ -17,30 +25,52 @@ function setup(){
     colorMode(HSB);
     background(0,0,0);
     noStroke();
-    let data = {
+    
+    frameRate(30)
+    let totalArea = width * height;
+
+    data = {
         usa: extractData(USrowData),
         china: extractData(CHIrowData),
         india: extractData(INrowData)
     };
     console.log(data.china);
 
-    colors = {
-        china: [255, 0, 0],
-        india: [0, 255, 0],
-        usa: [0, 0, 255]
-    };
-    let CHIMaxPop = data.china[data.china.length - 1];
-    let USAMaxPop = data.usa[data.usa.length - 1];
-    let INDiMaxPop = data.india[data.india.length - 1];
+ 
+
+    USAMaxPop = data.usa[data.usa.length - 1];
+    CHIMaxPop = data.china[data.china.length - 1];
+    INDiMaxPop = data.india[data.india.length - 1];
+
     totalPopulation = CHIMaxPop + USAMaxPop + INDiMaxPop
-    console.log(totalPopulation);
 
-
-    let totalArea = width * height;
+    areas.usa = (USAMaxPop / totalPopulation) * totalArea;
+    areas.china = (CHIMaxPop / totalPopulation) * totalArea;
+    areas.india = (INDiMaxPop / totalPopulation) * totalArea;
+    // console.log(areas);
+    // console.log(totalArea);
+    
+   
   
 }
 
 function draw(){
+    background(0, 0, 0);
+    fill(colors.usa, 100,100);
+    let index = frameCount % data.usa.length;
+    console.log(index);
+    let element = data.usa[index]
+    let proportion = element / USAMaxPop;
+    let size = sqrt(proportion * areas.usa)
+    rect(index, index, size, size)
+
+    fill(colors.china, 100,100);
+    let index2 = frameCount % data.china.length;
+    console.log(index2);
+    let element2 = data.china[index2]
+    let proportion2= element2 / CHIMaxPop;
+    let size2 = sqrt(proportion2 * areas.china)
+    rect(index2, index2, size2, size2)
 
 }
 
