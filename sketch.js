@@ -8,7 +8,10 @@ let colors = {
     usa: 50
 };
 let origin = {};
+let countries = [];
+let origins = []; 
 
+let divFactor = 12;
 function preload() {
     USrowData = loadJSON("/Us_pop.txt");
     CHIrowData = loadJSON("/India_pop.txt");
@@ -22,11 +25,11 @@ function setup() {
     noStroke();
     frameRate(30);
     
-    origin = {
-        usa: width / 2,
-        china: width / 2,
-        india: width / 2
-    };
+    // origin = {
+    //     usa: width / 2,
+    //     china: width / 2,
+    //     india: width / 2
+    // };
 
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
@@ -34,13 +37,19 @@ function setup() {
     let usa = new Country('usa', dataManager);
     let china = new Country('china', dataManager);
     let india = new Country('india', dataManager);
-
-    window.countries = [usa, china, india];
+    countries = [usa, china, india];
+  
+    initializeOrigins();
 }
 
 function draw() {
     background(0, 0, 0);
-    countries.forEach(country => country.drawData());
+    for (let i = 0; i < divFactor; i++) {
+      countries.forEach((country, index) => {
+        country.drawData(origins[index * divFactor + i]);
+    });
+    }
+  
 }
 
 function windowResized() {
@@ -50,9 +59,22 @@ function windowResized() {
 }
 
 function mouseClicked() {
-    origin.usa = random(width);
-    origin.china = random(width);
-    origin.india = random(width);
+  initializeOrigins(true);
+}
+
+function initializeOrigins(randomize = false) {
+  origins = [];
+  if (divFactor === 1 && !randomize) {
+      countries.forEach(() => {
+          origins.push({ x: width / 2, y: height / 2 });
+      });
+  } else {
+      for (let i = 0; i < divFactor; i++) {
+          countries.forEach(() => {
+              origins.push({ x: random(width), y: random(height) });
+          });
+      }
+  }
 }
 
 class DataManager {
@@ -115,24 +137,26 @@ class Country {
         return { size: size, index: this.index };
     }
 
-    drawData() {
-        let params = this.calculateParams();
-        fill(colors[this.name], 100, 100, 0.5);
-        let x = params.index + origin[this.name];
-        let y = params.index + origin[this.name];
-        let size = params.size;
-        if (x - size / 2 < 0) {
-            x = size / 2;
-        } else if (x + size / 2 > width) {
-            x = width - size / 2;
-        }
-        if (y - size / 2 < 0) {
-            y = size / 2;
-        } else if (y + size / 2 > height) {
-            y = height - size / 2;
-        }
-        ellipse(x, y, size, size);
+    drawData(origin) {
+   
+      let params = this.calculateParams();
+      fill(colors[this.name], 100, 100, 0.5);
+      let x = params.index + origin.x;
+      let y = params.index + origin.y;
+      let size = params.size/divFactor;
+      if (x - size / 2 < 0) {
+          x = size / 2;
+      } else if (x + size / 2 > width) {
+          x = width - size / 2;
+      }
+      if (y - size / 2 < 0) {
+          y = size / 2;
+      } else if (y + size / 2 > height) {
+          y = height - size / 2;
+      }
+      ellipse(x, y, size, size);
     }
+
 }
 
 
