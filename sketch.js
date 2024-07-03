@@ -10,12 +10,13 @@ let colors = {
 let origin = {};
 let countries = [];
 let origins = []; 
+let directions = [];
+let divFactor = 100;
 
-let divFactor = 12;
 function preload() {
-    USrowData = loadJSON("/Us_pop.txt");
-    CHIrowData = loadJSON("/India_pop.txt");
-    INrowData = loadJSON("/China_pop.txt");
+    USrowData = loadJSON("/data/Us_pop.txt");
+    CHIrowData = loadJSON("/data/India_pop.txt");
+    INrowData = loadJSON("/data/China_pop.txt");
 }
 
 function setup() {
@@ -24,12 +25,6 @@ function setup() {
     background(0, 0, 0);
     noStroke();
     frameRate(30);
-    
-    // origin = {
-    //     usa: width / 2,
-    //     china: width / 2,
-    //     india: width / 2
-    // };
 
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
@@ -40,13 +35,15 @@ function setup() {
     countries = [usa, china, india];
   
     initializeOrigins();
+    initializeDirections();
+
 }
 
 function draw() {
     background(0, 0, 0);
     for (let i = 0; i < divFactor; i++) {
       countries.forEach((country, index) => {
-        country.drawData(origins[index * divFactor + i]);
+        country.drawData(origins[index * divFactor + i], directions[index * divFactor + i]);
     });
     }
   
@@ -60,8 +57,10 @@ function windowResized() {
 
 function mouseClicked() {
   initializeOrigins(true);
+  initializeDirections(true);
 }
 
+// Random origins
 function initializeOrigins(randomize = false) {
   origins = [];
   if (divFactor === 1 && !randomize) {
@@ -75,6 +74,27 @@ function initializeOrigins(randomize = false) {
           });
       }
   }
+}
+
+// Random directions
+function initializeDirections(randomize = false) {
+    directions = [];
+    if (divFactor === 1 && !randomize) {
+        countries.forEach(() => {
+            directions.push({ x: 0, y: 0 });
+            });
+
+    } else {
+        for (let i = 0; i < divFactor; i++) {
+            countries.forEach(() => {
+                let angle = random(TWO_PI);  
+                directions.push({
+                    x: cos(angle),  
+                    y: sin(angle) 
+                });
+            });
+        }
+    }
 }
 
 class DataManager {
@@ -137,12 +157,12 @@ class Country {
         return { size: size, index: this.index };
     }
 
-    drawData(origin) {
+    drawData(origin, direction) {
    
       let params = this.calculateParams();
       fill(colors[this.name], 100, 100, 0.5);
-      let x = params.index + origin.x;
-      let y = params.index + origin.y;
+      let x = params.index * direction.x + origin.x;
+      let y = params.index *direction.y + origin.y;
       let size = params.size/divFactor;
       if (x - size / 2 < 0) {
           x = size / 2;
