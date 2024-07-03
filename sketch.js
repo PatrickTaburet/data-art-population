@@ -11,8 +11,7 @@ let origin = {};
 let countries = [];
 let origins = []; 
 let directions = [];
-let divFactor = 100;
-
+let divFactorSlider;
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
     CHIrowData = loadJSON("/data/India_pop.txt");
@@ -26,6 +25,7 @@ function setup() {
     noStroke();
     frameRate(30);
 
+    divFactorSlider = select(".divFactorSlider");
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
 
@@ -41,9 +41,14 @@ function setup() {
 
 function draw() {
     background(0, 0, 0);
+    let divFactor = divFactorSlider.value();
     for (let i = 0; i < divFactor; i++) {
-      countries.forEach((country, index) => {
-        country.drawData(origins[index * divFactor + i], directions[index * divFactor + i]);
+        countries.forEach((country, index) => {
+            let originIndex = index * divFactor + i;
+            let directionIndex = index * divFactor + i;
+            if (originIndex < origins.length && directionIndex < directions.length) {
+                country.drawData(origins[originIndex], directions[directionIndex]);
+            }
     });
     }
   
@@ -62,23 +67,25 @@ function mouseClicked() {
 
 // Random origins
 function initializeOrigins(randomize = false) {
-  origins = [];
-  if (divFactor === 1 && !randomize) {
-      countries.forEach(() => {
-          origins.push({ x: width / 2, y: height / 2 });
-      });
-  } else {
-      for (let i = 0; i < divFactor; i++) {
-          countries.forEach(() => {
-              origins.push({ x: random(width), y: random(height) });
-          });
-      }
-  }
+    let divFactor = divFactorSlider.value();
+    origins = [];
+    if (divFactor === 1 && !randomize) {
+        countries.forEach(() => {
+            origins.push({ x: width / 2, y: height / 2 });
+        });
+    } else {
+        for (let i = 0; i < divFactor; i++) {
+            countries.forEach(() => {
+                origins.push({ x: random(width), y: random(height) });
+            });
+        }
+    }
 }
 
 // Random directions
 function initializeDirections(randomize = false) {
     directions = [];
+    let divFactor = divFactorSlider.value();
     if (divFactor === 1 && !randomize) {
         countries.forEach(() => {
             directions.push({ x: 0, y: 0 });
@@ -163,7 +170,7 @@ class Country {
       fill(colors[this.name], 100, 100, 0.5);
       let x = params.index * direction.x + origin.x;
       let y = params.index *direction.y + origin.y;
-      let size = params.size/divFactor;
+      let size = params.size/divFactorSlider.value();
       if (x - size / 2 < 0) {
           x = size / 2;
       } else if (x + size / 2 > width) {
