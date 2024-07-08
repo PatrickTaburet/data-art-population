@@ -16,6 +16,9 @@ let numCopySlider;
 let deformationSlider;
 let sizeFactorSlider;
 let angleDivSlider;
+let opacitySlider;
+let colorsButton;
+let colorRangeSlider;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
@@ -35,6 +38,11 @@ function setup() {
     deformationSlider = select(".deformationSlider");
     sizeFactorSlider = select(".sizeFactorSlider");
     angleDivSlider = select(".angleDivSlider");
+    opacitySlider = select(".opacitySlider");
+    colorsButton = select(".colorsButton");
+    colorRangeSlider = select(".colorRangeSlider");
+
+    colorsButton.mousePressed(changeColors);
 
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
@@ -75,6 +83,11 @@ function mouseClicked() {
   initializeDirections(true);
 }
 
+function changeColors() {
+    colors.usa = random(360) + colorRangeSlider.value();
+    colors.china = random(360)+ colorRangeSlider.value();
+    colors.india = random(360)+ colorRangeSlider.value();
+}
 // Random origins
 function initializeOrigins(randomize = false) {
     let divFactor = divFactorSlider.value();
@@ -177,7 +190,7 @@ class Country {
     drawData(origin, direction) {
    
       let params = this.calculateParams();
-      fill(colors[this.name], 100, 100, 0.5);
+      fill(colors[this.name], 100, 100, opacitySlider.value());
       let x = params.index * direction.x + origin.x;
       let y = params.index *direction.y + origin.y;
       let size = params.size/divFactorSlider.value();
