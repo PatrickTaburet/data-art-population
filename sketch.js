@@ -12,6 +12,11 @@ let countries = [];
 let origins = []; 
 let directions = [];
 let divFactorSlider;
+let numCopySlider;
+let deformationSlider;
+let sizeFactorSlider;
+let angleDivSlider;
+
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
     CHIrowData = loadJSON("/data/India_pop.txt");
@@ -26,6 +31,11 @@ function setup() {
     frameRate(30);
 
     divFactorSlider = select(".divFactorSlider");
+    numCopySlider = select(".numCopySlider");
+    deformationSlider = select(".deformationSlider");
+    sizeFactorSlider = select(".sizeFactorSlider");
+    angleDivSlider = select(".angleDivSlider");
+
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
 
@@ -181,24 +191,24 @@ class Country {
       } else if (y + size / 2 > height) {
           y = height - size / 2;
       }
-
+      
  // Kaleidoscopic effect with geometric deformation
- let numCopies = 10;  // Slider
+ let numCopies = numCopySlider.value();  // Slider
  let angleStep = TWO_PI / numCopies;  // Angle between each copy
-
+ let deformationScale = deformationSlider.value(); 
  push();
  translate(x, y);
  for (let i = 0; i < numCopies; i++) {
      push();
      rotate(i * angleStep);  // Rotate each copy
-     let deformationScale = 0.3;  // Slider
-     let sizeFactor = 0.5; 
+
+     let sizeFactor = sizeFactorSlider.value(); 
 
      // Deform the ellipse into a more complex shape
      beginShape();
-     for (let angle = 0; angle < TWO_PI; angle += PI / 6) {
-         let offsetX = size * cos(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-         let offsetY = size * sin(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
+     for (let angle = 0; angle < TWO_PI; angle += PI / angleDivSlider.value()) {
+         let offsetX = size/2 * cos(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
+         let offsetY = size/2 * sin(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
          vertex(offsetX, offsetY);
      }
      endShape(CLOSE);
