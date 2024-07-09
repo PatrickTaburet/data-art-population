@@ -20,6 +20,10 @@ let opacitySlider;
 let colorsButton;
 let colorRangeSlider;
 let filterSlider;
+let glitchMode = false;
+let glitchButton;
+let blendModes=[];
+let opacityValue;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
@@ -43,8 +47,11 @@ function setup() {
     colorsButton = select(".colorsButton");
     colorRangeSlider = select(".colorRangeSlider");
     filterSlider = select(".filterSlider");
+    glitchButton = select(".glitchButton");
 
+    glitchButton.mousePressed(()=>glitchMode = !glitchMode);
     colorsButton.mousePressed(changeColors);
+    
 
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
@@ -60,14 +67,24 @@ function setup() {
 }
 
 function draw() {
-    //blendMode(BLEND); 
+
+    // GLitch mode settings
+    if(!glitchMode){
+        blendMode(BLEND); 
+        blendModes = [BLEND, DIFFERENCE, EXCLUSION, SCREEN, REPLACE, HARD_LIGHT, ADD, REMOVE];
+    }else{
+        blendModes = [BLEND, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE];
+    }
+    opacityValue = glitchMode ? 1 : opacitySlider.value();
+
     background(0, 0, 0);
-    let blendModes = [BLEND, DIFFERENCE, EXCLUSION, SCREEN, REPLACE, HARD_LIGHT, SOFT_LIGHT, DODGE, BURN, ADD, REMOVE];
+    
+    // Filters blendmode
     let blendModeValue = filterSlider.value();
     console.log(blendModes[blendModeValue % blendModes.length]);
     blendMode(blendModes[blendModeValue % blendModes.length]);
    
-
+    // Drawing
     let divFactor = divFactorSlider.value();
     for (let i = 0; i < divFactor; i++) {
         countries.forEach((country, index) => {
@@ -199,7 +216,7 @@ class Country {
     drawData(origin, direction) {
    
       let params = this.calculateParams();
-      fill(colors[this.name], 100, 100, opacitySlider.value());
+      fill(colors[this.name], 100, 100, opacityValue);
       let x = params.index * direction.x + origin.x;
       let y = params.index *direction.y + origin.y;
       let size = params.size/divFactorSlider.value();
