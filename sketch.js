@@ -19,6 +19,7 @@ let angleDivSlider;
 let opacitySlider;
 let colorsButton;
 let colorRangeSlider;
+let filterSlider;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
@@ -41,6 +42,7 @@ function setup() {
     opacitySlider = select(".opacitySlider");
     colorsButton = select(".colorsButton");
     colorRangeSlider = select(".colorRangeSlider");
+    filterSlider = select(".filterSlider");
 
     colorsButton.mousePressed(changeColors);
 
@@ -58,7 +60,14 @@ function setup() {
 }
 
 function draw() {
+    //blendMode(BLEND); 
     background(0, 0, 0);
+    let blendModes = [BLEND, DIFFERENCE, EXCLUSION, SCREEN, REPLACE, HARD_LIGHT, SOFT_LIGHT, DODGE, BURN, ADD, REMOVE];
+    let blendModeValue = filterSlider.value();
+    console.log(blendModes[blendModeValue % blendModes.length]);
+    blendMode(blendModes[blendModeValue % blendModes.length]);
+   
+
     let divFactor = divFactorSlider.value();
     for (let i = 0; i < divFactor; i++) {
         countries.forEach((country, index) => {
