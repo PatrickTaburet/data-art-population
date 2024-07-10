@@ -21,10 +21,13 @@ let colorsButton;
 let colorRangeSlider;
 let filterSlider;
 let glitchMode = false;
+let noiseMode = false;
 let glitchButton;
+let noiseButton;
 let blendModes=[];
 let opacityValue;
-let noiseButton = true;
+let blendModeValue;
+let divSlider;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
@@ -39,6 +42,7 @@ function setup() {
     noStroke();
     frameRate(30);
 
+    blendModes = [BLEND, DIFFERENCE, EXCLUSION, SCREEN, REPLACE, HARD_LIGHT, ADD, REMOVE];
     divFactorSlider = select(".divFactorSlider");
     numCopySlider = select(".numCopySlider");
     deformationSlider = select(".deformationSlider");
@@ -49,9 +53,12 @@ function setup() {
     colorRangeSlider = select(".colorRangeSlider");
     filterSlider = select(".filterSlider");
     glitchButton = select(".glitchButton");
+    noiseButton = select(".noiseButton");
+    divSlider = select(".divSlider");
 
     glitchButton.mousePressed(()=>glitchMode = !glitchMode);
     colorsButton.mousePressed(changeColors);
+    noiseButton.mousePressed(()=>noiseMode = !noiseMode);
     
 
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
@@ -64,24 +71,18 @@ function setup() {
   
     initializeOrigins();
     initializeDirections();
-
 }
 
 function draw() {
+    background(0, 0, 0);
 
     // GLitch mode settings
     if(!glitchMode){
         blendMode(BLEND); 
-        blendModes = [BLEND, DIFFERENCE, EXCLUSION, SCREEN, REPLACE, HARD_LIGHT, ADD, REMOVE];
-    }else{
-        blendModes = [BLEND, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE, DIFFERENCE];
     }
     opacityValue = glitchMode ? 1 : opacitySlider.value();
-
-    background(0, 0, 0);
+    blendModeValue = glitchMode ? 1 : filterSlider.value();
     
-    // Filters blendmode
-    let blendModeValue = filterSlider.value();
     blendMode(blendModes[blendModeValue % blendModes.length]);
    
     // Drawing
@@ -94,8 +95,7 @@ function draw() {
                 country.drawData(origins[originIndex], directions[directionIndex]);
             }
     });
-    }
-  
+    } 
 }
 
 function windowResized() {
@@ -105,8 +105,8 @@ function windowResized() {
 }
 
 function mouseClicked() {
-  initializeOrigins(true);
-  initializeDirections(true);
+    initializeOrigins(true);
+    initializeDirections(true);
 }
 
 function changeColors() {
@@ -114,6 +114,7 @@ function changeColors() {
     colors.china = random(360)+ colorRangeSlider.value();
     colors.india = random(360)+ colorRangeSlider.value();
 }
+
 // Random origins
 function initializeOrigins(randomize = false) {
     let divFactor = divFactorSlider.value();
@@ -232,7 +233,7 @@ class Country {
         }
       
         // Kaleidoscopic effect with geometric deformation
-        let numCopies = numCopySlider.value();  // Slider
+        let numCopies = numCopySlider.value(); 
         let angleStep = TWO_PI / numCopies;  // Angle between each copy
         let deformationScale = deformationSlider.value(); 
         push();
@@ -246,28 +247,29 @@ class Country {
             // Deform the ellipse into a more complex shape
             beginShape();
             for (let angle = 0; angle < TWO_PI; angle += PI / angleDivSlider.value()) {
-                let offsetX, offsetY;
-              
-                if (noiseButton){
-                 
-                    let noiseScale = 0.1; // Adjust for more or less noise
-                    let noiseVal = noise(cos(angle) * noiseScale, sin(angle) * noiseScale, frameCount * noiseScale)*23;
-                 
-                    offsetX = size/2 * cos(angle)+noiseVal * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-                    offsetY = size/2 * sin(angle)+noiseVal * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-                    
-                } else {
-                    offsetX = size/2 * cos(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-                    offsetY = size/2 * sin(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-                }
-                console.log(noise);
-                vertex(offsetX, offsetY);
+                let offsets = this.calculateOffsets(angle, deformationScale, sizeFactor, size);
+                vertex(offsets.offsetX, offsets.offsetY);
             }
             endShape(CLOSE);
             pop();
         }
         pop();
 
+    }
+    calculateOffsets(angle, deformationScale, sizeFactor, size) {
+        let offsetX, offsetY;
+        let divValue = divSlider.value();
+        if (noiseMode) {
+            let noiseScale = 0.1;
+            let noiseVal = noise(cos(angle) * noiseScale, sin(angle) * noiseScale, frameCount * noiseScale) * 23;
+    
+            offsetX = size / 2 * cos(angle) + noiseVal * (1 + deformationScale * sin(divValue * angle + frameCount * 0.05)) * sizeFactor;
+            offsetY = size / 2 * sin(angle) + noiseVal * (1 + deformationScale * sin(divValue * angle + frameCount * 0.05)) * sizeFactor;
+        } else {
+            offsetX = size / 2 * cos(angle) * (1 + deformationScale * sin(divValue * angle + frameCount * 0.05)) * sizeFactor;
+            offsetY = size / 2 * sin(angle) * (1 + deformationScale * sin(divValue * angle + frameCount * 0.05)) * sizeFactor;
+        }
+        return { offsetX, offsetY };
     }
 
 }
