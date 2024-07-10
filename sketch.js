@@ -24,6 +24,7 @@ let glitchMode = false;
 let glitchButton;
 let blendModes=[];
 let opacityValue;
+let noiseButton = true;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
@@ -81,7 +82,6 @@ function draw() {
     
     // Filters blendmode
     let blendModeValue = filterSlider.value();
-    console.log(blendModes[blendModeValue % blendModes.length]);
     blendMode(blendModes[blendModeValue % blendModes.length]);
    
     // Drawing
@@ -215,46 +215,59 @@ class Country {
 
     drawData(origin, direction) {
    
-      let params = this.calculateParams();
-      fill(colors[this.name], 100, 100, opacityValue);
-      let x = params.index * direction.x + origin.x;
-      let y = params.index *direction.y + origin.y;
-      let size = params.size/divFactorSlider.value();
-      if (x - size / 2 < 0) {
-          x = size / 2;
-      } else if (x + size / 2 > width) {
-          x = width - size / 2;
-      }
-      if (y - size / 2 < 0) {
-          y = size / 2;
-      } else if (y + size / 2 > height) {
-          y = height - size / 2;
-      }
+        let params = this.calculateParams();
+        fill(colors[this.name], 100, 100, opacityValue);
+        let x = params.index * direction.x + origin.x;
+        let y = params.index *direction.y + origin.y;
+        let size = params.size/divFactorSlider.value();
+        if (x - size / 2 < 0) {
+            x = size / 2;
+        } else if (x + size / 2 > width) {
+            x = width - size / 2;
+        }
+        if (y - size / 2 < 0) {
+            y = size / 2;
+        } else if (y + size / 2 > height) {
+            y = height - size / 2;
+        }
       
- // Kaleidoscopic effect with geometric deformation
- let numCopies = numCopySlider.value();  // Slider
- let angleStep = TWO_PI / numCopies;  // Angle between each copy
- let deformationScale = deformationSlider.value(); 
- push();
- translate(x, y);
- for (let i = 0; i < numCopies; i++) {
-     push();
-     rotate(i * angleStep);  // Rotate each copy
+        // Kaleidoscopic effect with geometric deformation
+        let numCopies = numCopySlider.value();  // Slider
+        let angleStep = TWO_PI / numCopies;  // Angle between each copy
+        let deformationScale = deformationSlider.value(); 
+        push();
+        translate(x, y);
+        for (let i = 0; i < numCopies; i++) { 
+            push();
+            rotate(i * angleStep);  // Rotate each copy
 
-     let sizeFactor = sizeFactorSlider.value(); 
+            let sizeFactor = sizeFactorSlider.value(); 
 
-     // Deform the ellipse into a more complex shape
-     beginShape();
-     for (let angle = 0; angle < TWO_PI; angle += PI / angleDivSlider.value()) {
-         let offsetX = size/2 * cos(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-         let offsetY = size/2 * sin(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
-         vertex(offsetX, offsetY);
-     }
-     endShape(CLOSE);
+            // Deform the ellipse into a more complex shape
+            beginShape();
+            for (let angle = 0; angle < TWO_PI; angle += PI / angleDivSlider.value()) {
+                let offsetX, offsetY;
+              
+                if (noiseButton){
+                 
+                    let noiseScale = 0.1; // Adjust for more or less noise
+                    let noiseVal = noise(cos(angle) * noiseScale, sin(angle) * noiseScale, frameCount * noiseScale)*23;
+                 
+                    offsetX = size/2 * cos(angle)+noiseVal * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
+                    offsetY = size/2 * sin(angle)+noiseVal * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
+                    
+                } else {
+                    offsetX = size/2 * cos(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
+                    offsetY = size/2 * sin(angle) * (1 + deformationScale * sin(6 * angle + frameCount * 0.05)) * sizeFactor;
+                }
+                console.log(noise);
+                vertex(offsetX, offsetY);
+            }
+            endShape(CLOSE);
+            pop();
+        }
+        pop();
 
-     pop();
- }
- pop();
     }
 
 }
