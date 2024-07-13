@@ -2,11 +2,7 @@ let USrowData;
 let CHIrowData;
 let INrowData;
 
-let colors = {
-    china: 255,
-    india: 150,
-    usa: 50
-};
+let colors = {};
 let origin = {};
 let countries = [];
 let origins = []; 
@@ -28,6 +24,9 @@ let blendModes=[];
 let opacityValue;
 let blendModeValue;
 let divSlider;
+let chinaColor;
+let usaColor;
+let indiaColor;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
@@ -56,11 +55,20 @@ function setup() {
     noiseButton = select(".noiseButton");
     divSlider = select(".divSlider");
 
+    chinaColor = select(".chinaColor");
+    usaColor= select(".usaColor");
+    indiaColor= select(".indiaColor");
+
     glitchButton.mousePressed(()=>glitchMode = !glitchMode);
     colorsButton.mousePressed(changeColors);
     noiseButton.mousePressed(()=>noiseMode = !noiseMode);
     
-
+    changeColors();
+    colors = {
+        china: colors.china,
+        india: colors.india,
+        usa: colors.usa,
+    };
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
 
@@ -113,6 +121,24 @@ function changeColors() {
     colors.usa = random(360) + colorRangeSlider.value();
     colors.china = random(360)+ colorRangeSlider.value();
     colors.india = random(360)+ colorRangeSlider.value();
+
+    let chinaHue =  colors.china % 360;
+    let usaHue = colors.usa % 360;
+    let indiaHue = colors.india % 360;
+
+    let chinaColorHSB = color(chinaHue, 100, 100);
+    let usaColorHSB = color(usaHue % 360, 100, 100);
+    let indiaColorHSB = color(indiaHue % 360, 100, 100);
+
+
+    // Hexadécimal conversion
+    let chinaHex = '#' + hex(chinaColorHSB.levels[0], 2) + hex(chinaColorHSB.levels[1], 2) + hex(chinaColorHSB.levels[2], 2);
+    let usaHex = '#' + hex(usaColorHSB.levels[0], 2) + hex(usaColorHSB.levels[1], 2) + hex(usaColorHSB.levels[2], 2);
+    let indiaHex = '#' + hex(indiaColorHSB.levels[0], 2) + hex(indiaColorHSB.levels[1], 2) + hex(indiaColorHSB.levels[2], 2);
+
+    chinaColor.style("color", chinaHex);
+    usaColor.style("color", usaHex);
+    indiaColor.style("color", indiaHex);
 }
 
 // Random origins
