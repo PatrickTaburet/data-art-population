@@ -27,11 +27,46 @@ let divSlider;
 let chinaColor;
 let usaColor;
 let indiaColor;
+let totalArea;
 
 function preload() {
     USrowData = loadJSON("/data/Us_pop.txt");
     CHIrowData = loadJSON("/data/India_pop.txt");
     INrowData = loadJSON("/data/China_pop.txt");
+}
+
+function setupSliders() {
+    divFactorSlider = select(".divFactorSlider");
+    numCopySlider = select(".numCopySlider");
+    deformationSlider = select(".deformationSlider");
+    sizeFactorSlider = select(".sizeFactorSlider");
+    angleDivSlider = select(".angleDivSlider");
+    opacitySlider = select(".opacitySlider");
+    colorRangeSlider = select(".colorRangeSlider");
+    filterSlider = select(".filterSlider");
+    divSlider = select(".divSlider");
+}
+
+function setupButtons(){
+    colorsButton = select(".colorsButton");
+    glitchButton = select(".glitchButton");
+    noiseButton = select(".noiseButton");
+ 
+    glitchButton.mousePressed(()=>glitchMode = !glitchMode);
+    colorsButton.mousePressed(changeColors);
+    noiseButton.mousePressed(()=>noiseMode = !noiseMode);
+}
+
+function setupColors(){
+    chinaColor = select(".chinaColor");
+    usaColor= select(".usaColor");
+    indiaColor= select(".indiaColor");
+
+    colors = {
+        china: colors.china | 255,
+        india: colors.india | 150,
+        usa: colors.usa | 50,
+    };
 }
 
 function setup() {
@@ -41,34 +76,12 @@ function setup() {
     noStroke();
     frameRate(30);
 
-    blendModes = [BLEND, DIFFERENCE, EXCLUSION, SCREEN, REPLACE, HARD_LIGHT, ADD, REMOVE];
-    divFactorSlider = select(".divFactorSlider");
-    numCopySlider = select(".numCopySlider");
-    deformationSlider = select(".deformationSlider");
-    sizeFactorSlider = select(".sizeFactorSlider");
-    angleDivSlider = select(".angleDivSlider");
-    opacitySlider = select(".opacitySlider");
-    colorsButton = select(".colorsButton");
-    colorRangeSlider = select(".colorRangeSlider");
-    filterSlider = select(".filterSlider");
-    glitchButton = select(".glitchButton");
-    noiseButton = select(".noiseButton");
-    divSlider = select(".divSlider");
+    blendModes = [BLEND, DIFFERENCE, REPLACE, HARD_LIGHT, ADD];
+    setupSliders()
+    setupButtons()
+    setupColors();
 
-    chinaColor = select(".chinaColor");
-    usaColor= select(".usaColor");
-    indiaColor= select(".indiaColor");
-
-    glitchButton.mousePressed(()=>glitchMode = !glitchMode);
-    colorsButton.mousePressed(changeColors);
-    noiseButton.mousePressed(()=>noiseMode = !noiseMode);
-    
-    changeColors();
-    colors = {
-        china: colors.china,
-        india: colors.india,
-        usa: colors.usa,
-    };
+    totalArea = width * height;
     let dataManager = new DataManager(USrowData, CHIrowData, INrowData);
     dataManager.calculateAreas();
 
@@ -92,7 +105,7 @@ function draw() {
     blendModeValue = glitchMode ? 1 : filterSlider.value();
     
     blendMode(blendModes[blendModeValue % blendModes.length]);
-   
+   console.log(blendModes[filterSlider.value()]);
     // Drawing
     let divFactor = divFactorSlider.value();
     for (let i = 0; i < divFactor; i++) {
@@ -113,8 +126,10 @@ function windowResized() {
 }
 
 function mouseClicked() {
+    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
     initializeOrigins(true);
     initializeDirections(true);
+    }
 }
 
 function changeColors() {
@@ -197,7 +212,6 @@ class DataManager {
         this.INDiMaxPop = this.INData[this.INData.length - 1];
         
         this.totalPopulation = this.CHIMaxPop + this.USAMaxPop + this.INDiMaxPop;
-        this.totalArea = width * height;
         
         this.areas = {};
     }
@@ -217,9 +231,9 @@ class DataManager {
     }
     
     calculateAreas() {
-        this.areas.usa = (this.USAMaxPop / this.totalPopulation) * this.totalArea;
-        this.areas.china = (this.CHIMaxPop / this.totalPopulation) * this.totalArea;
-        this.areas.india = (this.INDiMaxPop / this.totalPopulation) * this.totalArea;
+        this.areas.usa = (this.USAMaxPop / this.totalPopulation) * totalArea;
+        this.areas.china = (this.CHIMaxPop / this.totalPopulation) * totalArea;
+        this.areas.india = (this.INDiMaxPop / this.totalPopulation) * totalArea;
     }
 }
 
@@ -285,10 +299,9 @@ class Country {
     calculateOffsets(angle, deformationScale, sizeFactor, size) {
         let offsetX, offsetY;
         let divValue = divSlider.value();
+        let noiseScale = 0.1;
         if (noiseMode) {
-            let noiseScale = 0.1;
             let noiseVal = noise(cos(angle) * noiseScale, sin(angle) * noiseScale, frameCount * noiseScale) * 23;
-    
             offsetX = size / 2 * cos(angle) + noiseVal * (1 + deformationScale * sin(divValue * angle + frameCount * 0.05)) * sizeFactor;
             offsetY = size / 2 * sin(angle) + noiseVal * (1 + deformationScale * sin(divValue * angle + frameCount * 0.05)) * sizeFactor;
         } else {
@@ -299,48 +312,3 @@ class Country {
     }
 
 }
-
-
-// TEST PERLIN NOISE SHAPE
-
-
- //sin variables
-//  let amplitude = 2;
-//  let offset =0.05;
- 
-//  // Perlin noise variables
-//  let noiseScale = 0.01;
-//  let noiseOffset = sin(frameCount * 0.02) * amplitude + offset;
-     
-   
-//  let points = [];
-//  let maxPoints = 100;
-
-//  for (let i = 0; i < maxPoints; i++) {
-//      let angle = i * TWO_PI / maxPoints;
-    
-//      let radius = size * noise(noiseOffset + i * noiseScale);
-//      let x = width / 2 + radius * cos(angle);
-//      let y = height / 2 + radius * sin(angle);
-//      points.push(createVector(x, y));
-//      //noiseOffset += sin(frameCount * 0.01) * amplitude + offset;
-//      noiseOffset += 0.05;
-//  }
-//  console.log(points);
-//  //Interpoler les points supplémentaires pour une transition douce
-//  let interpolationSteps = 100; // Ajustez ce nombre pour une transition plus ou moins douce
-//  for (let i = 0; i < interpolationSteps; i++) {
-//      let t = i / interpolationSteps;
-//      let x = lerp(points[points.length - 1].x, points[0].x, t);
-//      let y = lerp(points[points.length - 1].y, points[0].y, t);
-//      points.push(createVector(x, y));
-//  }
-//  console.log(points);
-//  // Draw the shape
-//  fill(colors[country], 100, 100);
-//  beginShape();
-//  for (let p of points) {
-//      vertex(p.x, p.y);
-//  }
-
-//  endShape(CLOSE);
